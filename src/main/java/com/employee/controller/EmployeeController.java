@@ -1,6 +1,7 @@
 package com.employee.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.employee.entity.Employee;
 import com.employee.exception.SignUpRestrictedException;
@@ -43,6 +44,9 @@ public class EmployeeController {
     @GetMapping(value = "/get/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getEmployees() {
         Gson gson = new Gson();
-        return ResponseEntity.status(HttpStatus.OK).body(gson.toJson(employeeService.getAllEmployees()));
+        JsonArray jsonArray = new Gson().toJsonTree(employeeService.getAllEmployees()).getAsJsonArray();
+        JsonObject jsonObject  = new JsonObject();
+        jsonObject.add("employees", jsonArray);
+        return ResponseEntity.status(HttpStatus.OK).body(gson.toJson(jsonObject));
     }
 }
