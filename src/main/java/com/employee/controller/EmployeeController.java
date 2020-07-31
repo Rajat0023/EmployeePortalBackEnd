@@ -24,21 +24,26 @@ public class EmployeeController {
     public ResponseEntity<String> registerEmployee(@RequestBody final Employee employeeRequest) throws SignUpRestrictedException {
         Gson gson = new Gson();
         if (employeeRequest.getFirstName().equals("") || employeeRequest.getDateOfBirth().equals("") || employeeRequest.getGender().equals("")
-        || employeeRequest.getDepartment().equals("")) {
+                || employeeRequest.getDepartment().equals("")) {
             throw new SignUpRestrictedException("SGR - 001", "Except last name all fields should be filled");
         }
-
-        Employee newEmployee = new Employee();
-        newEmployee.setFirstName(employeeRequest.getFirstName());
-        newEmployee.setLastName(employeeRequest.getLastName());
-        newEmployee.setGender(employeeRequest.getGender());
-        newEmployee.setDateOfBirth(employeeRequest.getDateOfBirth());
-        newEmployee.setDepartment(employeeRequest.getDepartment());
-
-        employeeService.save(newEmployee);
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("message", "Employee Registered Successfully");
-        return ResponseEntity.status(HttpStatus.CREATED).body(gson.toJson(jsonObject));
+        ResponseEntity<String> response = null;
+        if (!employeeService.checkIfEmployeeExists(employeeRequest)) {
+            Employee newEmployee = new Employee();
+            newEmployee.setFirstName(employeeRequest.getFirstName());
+            newEmployee.setLastName(employeeRequest.getLastName());
+            newEmployee.setGender(employeeRequest.getGender());
+            newEmployee.setDateOfBirth(employeeRequest.getDateOfBirth());
+            newEmployee.setDepartment(employeeRequest.getDepartment());
+            employeeService.save(newEmployee);
+            jsonObject.addProperty("message", "Employee Registered Successfully");
+            response = ResponseEntity.status(HttpStatus.CREATED).body(gson.toJson(jsonObject));
+        } else {
+            jsonObject.addProperty("message", "Employee Already Exists");
+            response = ResponseEntity.status(HttpStatus.CONFLICT).body(gson.toJson(jsonObject));
+        }
+        return response;
     }
 
     @GetMapping(value = "/get/all", produces = MediaType.APPLICATION_JSON_VALUE)
